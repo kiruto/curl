@@ -13,6 +13,13 @@ final RegExp _r9 = RegExp(r"\r");
 final RegExp _r10 = RegExp(r"[[{}\]]");
 const String _urlencoded = "application/x-www-form-urlencoded";
 
+String _uriEncodeMap(Map<String, String> data) => data.keys
+    .map(
+      (String key) =>
+          "${Uri.encodeComponent(key)}=${Uri.encodeComponent(data[key] ?? '')}",
+    )
+    .join("&");
+
 String _escapeStringWindows(String str) =>
     "\"" +
     str
@@ -63,7 +70,11 @@ String toCurl(http.Request req) {
   String requestMethod = "GET";
 
   command.add(
-    _escapeString("${req.url.origin}${req.url.path}").replaceAllMapped(
+    _escapeString(
+      req.url.queryParameters.isNotEmpty
+          ? "${req.url.origin}${req.url.path}?${_uriEncodeMap(req.url.queryParameters)}"
+          : "${req.url.origin}${req.url.path}",
+    ).replaceAllMapped(
       _r10,
       (match) => "\\${match.group(0)}",
     ),
@@ -77,10 +88,7 @@ String toCurl(http.Request req) {
     data.add("--data");
     data.add(
       _escapeString(
-        req.bodyFields.keys
-            .map((String key) =>
-                "${Uri.encodeComponent(key)}=${Uri.encodeComponent(req.bodyFields[key] ?? '')}")
-            .join("&"),
+        _uriEncodeMap(req.bodyFields),
       ),
     );
   } else if (req.body.isNotEmpty) {
