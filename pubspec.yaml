@@ -1,6 +1,6 @@
 name: curl
 description: Generate output equivalent to the "copy as curl" option with HTTP client debugger.
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/kiruto/curl
 
 environment:

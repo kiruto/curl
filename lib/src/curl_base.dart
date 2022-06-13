@@ -1,6 +1,8 @@
-import 'dart:io' show HttpHeaders, Platform;
+import 'dart:io' as io show HttpHeaders, Platform;
 
 import 'package:http/http.dart' as http show Request;
+
+enum Platform { WIN, POSIX }
 
 final RegExp _r1 = RegExp(r'"');
 final RegExp _r2 = RegExp(r'%');
@@ -52,10 +54,15 @@ String _escapeStringPosix(String str) => _r5.hasMatch(str)
         "'"
     : "'$str'";
 
-String _escapeString(String str) =>
-    Platform.isWindows ? _escapeStringWindows(str) : _escapeStringPosix(str);
+String toCurl(
+  http.Request req, {
+  Platform? platform,
+}) {
+  platform ??= io.Platform.isWindows ? Platform.WIN : Platform.POSIX;
 
-String toCurl(http.Request req) {
+  final String Function(String str) escapeString =
+      platform == Platform.WIN ? _escapeStringWindows : _escapeStringPosix;
+
   final List<String> command = ['curl'];
   final List<String> ignoredHeaders = [
     'host',
@@ -70,7 +77,7 @@ String toCurl(http.Request req) {
   String requestMethod = 'GET';
 
   command.add(
-    _escapeString(
+    escapeString(
       req.url.queryParameters.isNotEmpty
           ? '${req.url.origin}${req.url.path}?${_uriEncodeMap(req.url.queryParameters)}'
           : '${req.url.origin}${req.url.path}',
@@ -80,22 +87,22 @@ String toCurl(http.Request req) {
     ),
   );
 
-  final String? contentType = req.headers[HttpHeaders.contentTypeHeader];
+  final String? contentType = req.headers[io.HttpHeaders.contentTypeHeader];
 
   if (contentType != null && contentType.indexOf(_urlencoded) == 0) {
-    ignoredHeaders.add(HttpHeaders.contentLengthHeader);
+    ignoredHeaders.add(io.HttpHeaders.contentLengthHeader);
     requestMethod = 'POST';
     data.add('--data');
     data.add(
-      _escapeString(
+      escapeString(
         _uriEncodeMap(req.bodyFields),
       ),
     );
   } else if (req.body.isNotEmpty) {
-    ignoredHeaders.add(HttpHeaders.contentLengthHeader);
+    ignoredHeaders.add(io.HttpHeaders.contentLengthHeader);
     requestMethod = 'POST';
     data.add('--data-binary');
-    data.add(_escapeString(req.body));
+    data.add(escapeString(req.body));
   }
 
   if (req.method != requestMethod) {
@@ -112,7 +119,7 @@ String toCurl(http.Request req) {
   }.forEach(
     (String k, String v) => command
       ..add('-H')
-      ..add(_escapeString('$k: $v')),
+      ..add(escapeString('$k: $v')),
   );
 
   return (command
