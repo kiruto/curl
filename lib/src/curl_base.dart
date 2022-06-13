@@ -1,6 +1,6 @@
 import 'dart:io' show HttpHeaders, Platform;
 
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http show Request;
 
 final RegExp _r1 = RegExp(r'"');
 final RegExp _r2 = RegExp(r'%');
