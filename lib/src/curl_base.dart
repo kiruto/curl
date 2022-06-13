@@ -27,38 +27,28 @@ String escapeStringWindows(String str) =>
         .replaceAllMapped(_r4, (match) => "\"^${match.group(0)}\"") +
     "\"";
 
-String escapeStringPosix(String str) {
-  if (_r5.hasMatch(str)) {
-    // Use ANSI-C quoting syntax.
-    return "\$\'" +
+String escapeStringPosix(String str) => _r5.hasMatch(str)
+    ? "\$\'" +
         str
             .replaceAll(_r3, "\\\\")
             .replaceAll(_r7, "\\\'")
             .replaceAll(_r8, "\\n")
             .replaceAll(_r9, "\\r")
-            .replaceAllMapped(
-          _r5,
-          (Match match) {
-            final String x = match.group(0) ?? '';
-            assert(x.length == 1);
-            final int code = x.codeUnitAt(0);
-            if (code < 256) {
-              // Add leading zero when needed to not care about the next character.
-              return code < 16
-                  ? "\\x0${code.toRadixString(16)}"
-                  : "\\x${code.toRadixString(16)}";
-            }
-            final String c = code.toRadixString(16);
+            .replaceAllMapped(_r5, (Match match) {
+          final String x = match.group(0) ?? '';
+          assert(x.length == 1);
+          final int code = x.codeUnitAt(0);
+          if (code < 256) {
+            return code < 16
+                ? "\\x0${code.toRadixString(16)}"
+                : "\\x${code.toRadixString(16)}";
+          }
+          final String c = code.toRadixString(16);
 
-            return "\\u" + ("0000$c").substring(c.length, c.length + 4);
-          },
-        ) +
-        "'";
-  } else {
-    // Use single quote syntax.
-    return "'$str'";
-  }
-}
+          return "\\u" + ("0000$c").substring(c.length, c.length + 4);
+        }) +
+        "'"
+    : "'$str'";
 
 String toCurl(
   http.Request req, {
@@ -77,9 +67,6 @@ String toCurl(
       platform == Platform.WIN ? escapeStringWindows : escapeStringPosix;
 
   final List<String> data = [];
-  final Map<String, String> requestHeaders = req.headers;
-  final String requestBody = req.body;
-  final String? contentType = requestHeaders[HttpHeaders.contentTypeHeader];
 
   String requestMethod = "GET";
 
@@ -89,6 +76,8 @@ String toCurl(
       (match) => "\\${match.group(0)}",
     ),
   );
+
+  final String? contentType = req.headers[HttpHeaders.contentTypeHeader];
 
   if (contentType != null && contentType.indexOf(_urlencoded) == 0) {
     ignoredHeaders.add(HttpHeaders.contentLengthHeader);
@@ -102,11 +91,11 @@ String toCurl(
             .join("&"),
       ),
     );
-  } else if (requestBody.isNotEmpty) {
+  } else if (req.body.isNotEmpty) {
     ignoredHeaders.add(HttpHeaders.contentLengthHeader);
     requestMethod = "POST";
     data.add("--data-binary");
-    data.add(escapeString(requestBody));
+    data.add(escapeString(req.body));
   }
 
   if (req.method != requestMethod) {
@@ -115,14 +104,15 @@ String toCurl(
       ..add(req.method);
   }
 
-  Map<String, String>.fromIterable(
-      requestHeaders.keys.where((k) => !ignoredHeaders.contains(k)),
-      value: (k) => requestHeaders[k] ?? '').forEach(
-    (k, v) {
-      command
-        ..add("-H")
-        ..add(escapeString("$k: $v"));
-    },
+  <String, String>{
+    for (final String key in req.headers.keys.where(
+      (String k) => !ignoredHeaders.contains(k),
+    ))
+      key: req.headers[key] ?? '',
+  }.forEach(
+    (String k, String v) => command
+      ..add("-H")
+      ..add(escapeString("$k: $v")),
   );
 
   return (command
