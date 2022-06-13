@@ -27,7 +27,7 @@ void main() {
     final http.Request req = http.Request("GET", endpoint);
     expect(
       toCurl(req),
-      equals("curl '$endpoint' --compressed --insecure"),
+      "curl '$endpoint' --compressed --insecure",
     );
   });
 
@@ -35,7 +35,7 @@ void main() {
     final http.Request req = http.Request("GET", endpointWithQuery);
     expect(
       toCurl(req),
-      equals("curl '$endpointWithQuery' --compressed --insecure"),
+      "curl '$endpointWithQuery' --compressed --insecure",
     );
   });
 
@@ -48,9 +48,7 @@ void main() {
     req.headers["User-Agent"] = ua;
     expect(
       toCurl(req),
-      equals(
-        "curl '$endpoint' -H 'Cookie: $cookie' -H 'User-Agent: $ua' --compressed --insecure",
-      ),
+      "curl '$endpoint' -H 'Cookie: $cookie' -H 'User-Agent: $ua' --compressed --insecure",
     );
   });
 
@@ -58,7 +56,7 @@ void main() {
     final http.Request req = http.Request("POST", endpoint);
     expect(
       toCurl(req),
-      equals("curl '$endpoint' -X POST --compressed --insecure"),
+      "curl '$endpoint' -X POST --compressed --insecure",
     );
   });
 
@@ -66,7 +64,7 @@ void main() {
     final http.Request req = http.Request("POST", endpointWithQuery);
     expect(
       toCurl(req),
-      equals("curl '$endpointWithQuery' -X POST --compressed --insecure"),
+      "curl '$endpointWithQuery' -X POST --compressed --insecure",
     );
   });
 
@@ -82,9 +80,7 @@ void main() {
     };
     expect(
       toCurl(req),
-      equals(
-        "curl '$endpoint' -H 'content-type: application/x-www-form-urlencoded; charset=utf-8' --data '$expectQuery' --compressed --insecure",
-      ),
+      "curl '$endpoint' -H 'content-type: application/x-www-form-urlencoded; charset=utf-8' --data '$expectQuery' --compressed --insecure",
     );
   });
 
@@ -93,9 +89,7 @@ void main() {
     req.body = "This is the text of body😅, \\, \\\\, \\\\\\";
     expect(
       toCurl(req),
-      equals(
-        "curl '$endpoint' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
-      ),
+      "curl '$endpoint' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
     );
   });
 
@@ -104,9 +98,7 @@ void main() {
     req.body = "This is the text of body😅, \\, \\\\, \\\\\\";
     expect(
       toCurl(req),
-      equals(
-        "curl '$endpointWithQuery' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
-      ),
+      "curl '$endpointWithQuery' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
     );
   });
 
@@ -115,9 +107,7 @@ void main() {
     req.body = "This is the text of body😅, \\, \\\\, \\\\\\";
     expect(
       toCurl(req),
-      equals(
-        "curl '$endpoint' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
-      ),
+      "curl '$endpoint' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
     );
   });
 
@@ -126,9 +116,7 @@ void main() {
     req.body = "This is the text of body😅, \\, \\\\, \\\\\\";
     expect(
       toCurl(req),
-      equals(
-        "curl '$endpointWithQuery' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
-      ),
+      "curl '$endpointWithQuery' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
     );
   });
 
@@ -136,7 +124,7 @@ void main() {
     final http.Request req = http.Request("DELETE", endpoint);
     expect(
       toCurl(req),
-      equals("curl '$endpoint' -X DELETE --compressed --insecure"),
+      "curl '$endpoint' -X DELETE --compressed --insecure",
     );
   });
 
@@ -144,7 +132,7 @@ void main() {
     final http.Request req = http.Request("DELETE", endpointWithQuery);
     expect(
       toCurl(req),
-      equals("curl '$endpointWithQuery' -X DELETE --compressed --insecure"),
+      "curl '$endpointWithQuery' -X DELETE --compressed --insecure",
     );
   });
 }
