@@ -1,4 +1,4 @@
-import 'dart:io' show HttpHeaders, Platform;
+import 'dart:io' show HttpHeaders;
 
 import 'package:http/http.dart' as http show Request;
 
@@ -12,6 +12,8 @@ final RegExp _r8 = RegExp(r'\n');
 final RegExp _r9 = RegExp(r'\r');
 final RegExp _r10 = RegExp(r'[[{}\]]');
 const String _urlencoded = 'application/x-www-form-urlencoded';
+
+enum CurlPlatform { WIN, POSIX }
 
 String _uriEncodeMap(Map<String, String> data) => data.keys
     .map(
@@ -52,10 +54,10 @@ String _escapeStringPosix(String str) => _r5.hasMatch(str)
         "'"
     : "'$str'";
 
-String _escapeString(String str) =>
-    Platform.isWindows ? _escapeStringWindows(str) : _escapeStringPosix(str);
-
-String toCurl(http.Request req) {
+String toCurl(
+  http.Request req, {
+  CurlPlatform platform = CurlPlatform.POSIX,
+}) {
   final List<String> command = ['curl'];
   final List<String> ignoredHeaders = [
     'host',
@@ -69,8 +71,11 @@ String toCurl(http.Request req) {
 
   String requestMethod = 'GET';
 
+  final String Function(String str) escapeString =
+      platform == CurlPlatform.WIN ? _escapeStringWindows : _escapeStringPosix;
+
   command.add(
-    _escapeString(
+    escapeString(
       req.url.queryParameters.isNotEmpty
           ? '${req.url.origin}${req.url.path}?${_uriEncodeMap(req.url.queryParameters)}'
           : '${req.url.origin}${req.url.path}',
@@ -87,7 +92,7 @@ String toCurl(http.Request req) {
     requestMethod = 'POST';
     data.add('--data');
     data.add(
-      _escapeString(
+      escapeString(
         _uriEncodeMap(req.bodyFields),
       ),
     );
@@ -95,7 +100,7 @@ String toCurl(http.Request req) {
     ignoredHeaders.add(HttpHeaders.contentLengthHeader);
     requestMethod = 'POST';
     data.add('--data-binary');
-    data.add(_escapeString(req.body));
+    data.add(escapeString(req.body));
   }
 
   if (req.method != requestMethod) {
@@ -112,7 +117,7 @@ String toCurl(http.Request req) {
   }.forEach(
     (String k, String v) => command
       ..add('-H')
-      ..add(_escapeString('$k: $v')),
+      ..add(escapeString('$k: $v')),
   );
 
   return (command
