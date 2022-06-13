@@ -10,3 +10,6 @@ doc/api/
 
 # IDE stuff
 .idea
+
+# Coverage
+coverage/
