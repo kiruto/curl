@@ -10,4 +10,7 @@ dependencies:
   http: ^0.13.4
 
 dev_dependencies:
+  dart_code_metrics: ^4.15.2
+  faker: ^2.0.0
+  lints: ^2.0.0
   test: ^1.21.1
