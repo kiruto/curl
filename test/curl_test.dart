@@ -20,14 +20,6 @@ void main() {
     );
   });
 
-  test("POST request, ", () {
-    final http.Request req = http.Request("POST", endpoint);
-    expect(
-      toCurl(req),
-      equals("curl '$endpoint' -X POST --compressed --insecure"),
-    );
-  });
-
   test("GET request with headers", () {
     final http.Request req = http.Request("GET", endpoint);
     final String cookie =
@@ -40,6 +32,14 @@ void main() {
       equals(
         "curl '$endpoint' -H 'Cookie: $cookie' -H 'User-Agent: $ua' --compressed --insecure",
       ),
+    );
+  });
+
+  test("POST request, ", () {
+    final http.Request req = http.Request("POST", endpoint);
+    expect(
+      toCurl(req),
+      equals("curl '$endpoint' -X POST --compressed --insecure"),
     );
   });
 
