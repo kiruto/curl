@@ -1,7 +1,14 @@
+import 'dart:convert' show utf8;
+
+import 'package:crypto/crypto.dart' as crypto show md5;
 import 'package:curl/curl.dart';
 import 'package:faker/faker.dart';
 import 'package:http/http.dart' as http show Request;
 import 'package:test/test.dart';
+
+extension on String {
+  String get md5hex => crypto.md5.convert(utf8.encode(this)).toString();
+}
 
 void main() {
   final Faker faker = new Faker();
@@ -42,7 +49,7 @@ void main() {
   test("GET request with headers", () {
     final http.Request req = http.Request("GET", endpoint);
     final String cookie =
-        "sessionid=${faker.randomGenerator.string(18)}; csrftoken=${faker.randomGenerator.string(19)};";
+        "sessionid=${faker.randomGenerator.string(32).md5hex}; csrftoken=${faker.randomGenerator.string(32).md5hex};";
     final String ua = "Thor";
     req.headers["Cookie"] = cookie;
     req.headers["User-Agent"] = ua;
