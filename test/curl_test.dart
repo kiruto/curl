@@ -1,15 +1,26 @@
 import 'package:curl/curl.dart';
 import 'package:faker/faker.dart';
-import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http show Request;
 import 'package:test/test.dart';
 
 void main() {
   final Faker faker = new Faker();
 
   late Uri endpoint;
+  late Uri endpointWithQuery;
 
   setUp(() {
     endpoint = Uri.parse(faker.internet.httpsUrl());
+    endpointWithQuery = Uri.https(
+      faker.internet.domainName(),
+      faker.internet.domainWord(),
+      <String, String>{
+        faker.lorem.word(): faker.lorem.word(),
+        faker.lorem.word(): faker.lorem.word(),
+        faker.lorem.word(): faker.lorem.word(),
+        faker.lorem.word(): faker.lorem.word(),
+      },
+    );
   });
 
   test("GET request", () {
@@ -17,6 +28,14 @@ void main() {
     expect(
       toCurl(req),
       equals("curl '$endpoint' --compressed --insecure"),
+    );
+  });
+
+  test("GET request with query parameters", () {
+    final http.Request req = http.Request("GET", endpointWithQuery);
+    expect(
+      toCurl(req),
+      equals("curl '$endpointWithQuery' --compressed --insecure"),
     );
   });
 
@@ -35,11 +54,19 @@ void main() {
     );
   });
 
-  test("POST request, ", () {
+  test("POST request", () {
     final http.Request req = http.Request("POST", endpoint);
     expect(
       toCurl(req),
       equals("curl '$endpoint' -X POST --compressed --insecure"),
+    );
+  });
+
+  test("POST request with query parameters ", () {
+    final http.Request req = http.Request("POST", endpointWithQuery);
+    expect(
+      toCurl(req),
+      equals("curl '$endpointWithQuery' -X POST --compressed --insecure"),
     );
   });
 
@@ -69,6 +96,55 @@ void main() {
       equals(
         "curl '$endpoint' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
       ),
+    );
+  });
+
+  test("PUT request with body and query parameters", () {
+    final http.Request req = http.Request("PUT", endpointWithQuery);
+    req.body = "This is the text of body😅, \\, \\\\, \\\\\\";
+    expect(
+      toCurl(req),
+      equals(
+        "curl '$endpointWithQuery' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
+      ),
+    );
+  });
+
+  test("PATCH request with body", () {
+    final http.Request req = http.Request("PATCH", endpoint);
+    req.body = "This is the text of body😅, \\, \\\\, \\\\\\";
+    expect(
+      toCurl(req),
+      equals(
+        "curl '$endpoint' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
+      ),
+    );
+  });
+
+  test("PATCH request with body and query parameters", () {
+    final http.Request req = http.Request("PATCH", endpointWithQuery);
+    req.body = "This is the text of body😅, \\, \\\\, \\\\\\";
+    expect(
+      toCurl(req),
+      equals(
+        "curl '$endpointWithQuery' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure",
+      ),
+    );
+  });
+
+  test("DELETE request", () {
+    final http.Request req = http.Request("DELETE", endpoint);
+    expect(
+      toCurl(req),
+      equals("curl '$endpoint' -X DELETE --compressed --insecure"),
+    );
+  });
+
+  test("DELETE request with query parameters ", () {
+    final http.Request req = http.Request("DELETE", endpointWithQuery);
+    expect(
+      toCurl(req),
+      equals("curl '$endpointWithQuery' -X DELETE --compressed --insecure"),
     );
   });
 }
