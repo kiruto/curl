@@ -1,4 +1,5 @@
 import 'dart:convert' show utf8;
+import 'dart:io' show Platform;
 
 import 'package:crypto/crypto.dart' as crypto show md5;
 import 'package:curl/curl.dart';
@@ -34,7 +35,9 @@ void main() {
     final http.Request req = http.Request('GET', endpoint);
     expect(
       toCurl(req),
-      "curl '$endpoint' --compressed --insecure",
+      Platform.isWindows
+          ? '''curl "$endpoint" --compressed --insecure'''
+          : '''curl '$endpoint' --compressed --insecure''',
     );
   });
 
@@ -42,7 +45,9 @@ void main() {
     final http.Request req = http.Request('GET', endpointWithQuery);
     expect(
       toCurl(req),
-      'curl \'$endpointWithQuery\' --compressed --insecure',
+      Platform.isWindows
+          ? '''curl "$endpointWithQuery" --compressed --insecure'''
+          : '''curl '$endpointWithQuery' --compressed --insecure''',
     );
   });
 
@@ -55,7 +60,9 @@ void main() {
     req.headers['User-Agent'] = ua;
     expect(
       toCurl(req),
-      'curl \'$endpoint\' -H \'Cookie: $cookie\' -H \'User-Agent: $ua\' --compressed --insecure',
+      Platform.isWindows
+          ? '''curl "$endpoint" -H "Cookie: $cookie" -H "User-Agent: $ua" --compressed --insecure'''
+          : '''curl '$endpoint' -H 'Cookie: $cookie' -H 'User-Agent: $ua' --compressed --insecure''',
     );
   });
 
@@ -63,7 +70,9 @@ void main() {
     final http.Request req = http.Request('POST', endpoint);
     expect(
       toCurl(req),
-      'curl \'$endpoint\' -X POST --compressed --insecure',
+      Platform.isWindows
+          ? '''curl "$endpoint" -X POST --compressed --insecure'''
+          : '''curl '$endpoint' -X POST --compressed --insecure''',
     );
   });
 
@@ -71,7 +80,9 @@ void main() {
     final http.Request req = http.Request('POST', endpointWithQuery);
     expect(
       toCurl(req),
-      'curl \'$endpointWithQuery\' -X POST --compressed --insecure',
+      Platform.isWindows
+          ? '''curl "$endpointWithQuery" -X POST --compressed --insecure'''
+          : '''curl '$endpointWithQuery' -X POST --compressed --insecure''',
     );
   });
 
@@ -80,14 +91,16 @@ void main() {
     final String part1 = 'This is the part one of content';
     final String part2 = 'This is the part two of content😅';
     final String expectQuery =
-        'part1=This%20is%20the%20part%20one%20of%20content&part2=This%20is%20the%20part%20two%20of%20content%F0%9F%98%85';
+        '''part1=This%20is%20the%20part%20one%20of%20content&part2=This%20is%20the%20part%20two%20of%20content%F0%9F%98%85''';
     req.bodyFields = {
       'part1': part1,
       'part2': part2,
     };
     expect(
       toCurl(req),
-      'curl \'$endpoint\' -H \'content-type: application/x-www-form-urlencoded; charset=utf-8\' --data \'$expectQuery\' --compressed --insecure',
+      Platform.isWindows
+          ? '''curl "$endpoint" -H "content-type: application/x-www-form-urlencoded; charset=utf-8" --data "$expectQuery" --compressed --insecure'''
+          : '''curl '$endpoint' -H 'content-type: application/x-www-form-urlencoded; charset=utf-8' --data '$expectQuery' --compressed --insecure''',
     );
   });
 
@@ -96,7 +109,9 @@ void main() {
     req.body = 'This is the text of body😅, \\, \\\\, \\\\\\';
     expect(
       toCurl(req),
-      '''curl '$endpoint' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure''',
+      Platform.isWindows
+          ? '''curl "$endpoint" -X PUT -H "content-type: text/plain; charset=utf-8" --data-binary \$"This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\" --compressed --insecure'''
+          : '''curl '$endpoint' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure''',
     );
   });
 
@@ -105,7 +120,9 @@ void main() {
     req.body = 'This is the text of body😅, \\, \\\\, \\\\\\';
     expect(
       toCurl(req),
-      '''curl '$endpointWithQuery' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure''',
+      Platform.isWindows
+          ? '''curl "$endpointWithQuery" -X PUT -H "content-type: text/plain; charset=utf-8" --data-binary \$"This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\" --compressed --insecure'''
+          : '''curl '$endpointWithQuery' -X PUT -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure''',
     );
   });
 
@@ -114,7 +131,9 @@ void main() {
     req.body = 'This is the text of body😅, \\, \\\\, \\\\\\';
     expect(
       toCurl(req),
-      '''curl '$endpoint' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure''',
+      Platform.isWindows
+          ? '''curl "$endpoint" -X PATCH -H "content-type: text/plain; charset=utf-8" --data-binary \$"This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\" --compressed --insecure'''
+          : '''curl '$endpoint' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure''',
     );
   });
 
@@ -123,7 +142,9 @@ void main() {
     req.body = 'This is the text of body😅, \\, \\\\, \\\\\\';
     expect(
       toCurl(req),
-      '''curl '$endpointWithQuery' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure''',
+      Platform.isWindows
+          ? '''curl "$endpointWithQuery" -X PATCH -H "content-type: text/plain; charset=utf-8" --data-binary \$"This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\" --compressed --insecure'''
+          : '''curl '$endpointWithQuery' -X PATCH -H 'content-type: text/plain; charset=utf-8' --data-binary \$'This is the text of body\\ud83d\\ude05, \\\\, \\\\\\\\, \\\\\\\\\\\\' --compressed --insecure''',
     );
   });
 
@@ -131,7 +152,9 @@ void main() {
     final http.Request req = http.Request('DELETE', endpoint);
     expect(
       toCurl(req),
-      'curl \'$endpoint\' -X DELETE --compressed --insecure',
+      Platform.isWindows
+          ? '''curl "$endpoint" -X DELETE --compressed --insecure'''
+          : '''curl '$endpoint' -X DELETE --compressed --insecure''',
     );
   });
 
@@ -139,7 +162,9 @@ void main() {
     final http.Request req = http.Request('DELETE', endpointWithQuery);
     expect(
       toCurl(req),
-      'curl \'$endpointWithQuery\' -X DELETE --compressed --insecure',
+      Platform.isWindows
+          ? '''curl "$endpointWithQuery" -X DELETE --compressed --insecure'''
+          : '''curl '$endpointWithQuery' -X DELETE --compressed --insecure''',
     );
   });
 }
