@@ -1,11 +1,6 @@
-import 'dart:io' show HttpHeaders;
+import 'dart:io' show HttpHeaders, Platform;
 
 import 'package:http/http.dart' as http;
-
-enum Platform {
-  WIN,
-  POSIX,
-}
 
 final RegExp _r1 = RegExp(r'"');
 final RegExp _r2 = RegExp(r'%');
@@ -18,7 +13,7 @@ final RegExp _r9 = RegExp(r"\r");
 final RegExp _r10 = RegExp(r"[[{}\]]");
 const String _urlencoded = "application/x-www-form-urlencoded";
 
-String escapeStringWindows(String str) =>
+String _escapeStringWindows(String str) =>
     "\"" +
     str
         .replaceAll(_r1, "\"\"")
@@ -27,7 +22,7 @@ String escapeStringWindows(String str) =>
         .replaceAllMapped(_r4, (match) => "\"^${match.group(0)}\"") +
     "\"";
 
-String escapeStringPosix(String str) => _r5.hasMatch(str)
+String _escapeStringPosix(String str) => _r5.hasMatch(str)
     ? "\$\'" +
         str
             .replaceAll(_r3, "\\\\")
@@ -50,10 +45,10 @@ String escapeStringPosix(String str) => _r5.hasMatch(str)
         "'"
     : "'$str'";
 
-String toCurl(
-  http.Request req, {
-  Platform platform = Platform.POSIX,
-}) {
+String _escapeString(String str) =>
+    Platform.isWindows ? _escapeStringWindows(str) : _escapeStringPosix(str);
+
+String toCurl(http.Request req) {
   final List<String> command = ["curl"];
   final List<String> ignoredHeaders = [
     "host",
@@ -63,15 +58,12 @@ String toCurl(
     "version",
   ];
 
-  final String Function(String str) escapeString =
-      platform == Platform.WIN ? escapeStringWindows : escapeStringPosix;
-
   final List<String> data = [];
 
   String requestMethod = "GET";
 
   command.add(
-    escapeString("${req.url.origin}${req.url.path}").replaceAllMapped(
+    _escapeString("${req.url.origin}${req.url.path}").replaceAllMapped(
       _r10,
       (match) => "\\${match.group(0)}",
     ),
@@ -84,7 +76,7 @@ String toCurl(
     requestMethod = "POST";
     data.add("--data");
     data.add(
-      escapeString(
+      _escapeString(
         req.bodyFields.keys
             .map((String key) =>
                 "${Uri.encodeComponent(key)}=${Uri.encodeComponent(req.bodyFields[key] ?? '')}")
@@ -95,7 +87,7 @@ String toCurl(
     ignoredHeaders.add(HttpHeaders.contentLengthHeader);
     requestMethod = "POST";
     data.add("--data-binary");
-    data.add(escapeString(req.body));
+    data.add(_escapeString(req.body));
   }
 
   if (req.method != requestMethod) {
@@ -112,7 +104,7 @@ String toCurl(
   }.forEach(
     (String k, String v) => command
       ..add("-H")
-      ..add(escapeString("$k: $v")),
+      ..add(_escapeString("$k: $v")),
   );
 
   return (command
